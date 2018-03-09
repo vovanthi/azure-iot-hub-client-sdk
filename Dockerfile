@@ -1,27 +1,18 @@
-FROM python:3.4
-ARG PY_VERSION="3.4"
+FROM ubuntu:16.04
+
+ARG PY_VERSION="3.5"
 RUN echo $PY_VERSION
 
 RUN apt-get -y update && apt-get install -y --no-install-recommends \
     git-core \
-    sudo \
-    cmake \
-    build-essential \
-    curl libcurl4-openssl-dev \
-    libssl-dev uuid-dev \
-    libboost-dev
+    python${PY_VERSION} \
+    python${PY_VERSION}-dev \
+    python3-pip \
+    libboost-all-dev \
+    libcurl4-openssl-dev
 
-RUN useradd -m docker && echo "docker:docker" | chpasswd && adduser docker sudo
+RUN rm -f /usr/bin/python
+RUN ln -s /usr/bin/python3.5 /usr/bin/python
+RUN python -m pip install azure-iothub-device-client
 
-# create and set work directory
-RUN mkdir /code
-WORKDIR /code
-
-# install Microsoft Azure IoT SDKs for Python
-RUN git clone --recursive https://github.com/Azure/azure-iot-sdk-python.git
-RUN apt-get -y update \
-    && cd azure-iot-sdk-python/build_all/linux/ \
-    && ./setup.sh --python-version $PY_VERSION \
-    && ./build.sh --build-python $PY_VERSION \
-    && cd ././
-
+RUN python -c "import iothub_client"
